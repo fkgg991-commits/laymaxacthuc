@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LayMax Xác Thực</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #0b0f17;
+    color: white;
+    min-height: 100vh;
+}
+
+.container {
+    width: 92%;
+    max-width: 500px;
+    margin: auto;
+    padding-top: 50px;
+}
+
+.logo {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #9ca3af;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #111827;
+    border: 1px solid #263244;
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+.card h2 {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.card p {
+    text-align: center;
+    color: #9ca3af;
+    line-height: 1.6;
+}
+
+.btn {
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #2563eb;
+    color: white;
+}
+
+.btn:hover {
+    background: #1d4ed8;
+}
+
+.btn:disabled {
+    background: #374151;
+    cursor: not-allowed;
+}
+
+#result {
+    display: none;
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 15px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    text-align: center;
+}
+
+.code {
+    margin: 15px 0;
+    padding: 15px;
+    background: #020617;
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    color: #60a5fa;
+    word-break: break-all;
+}
+
+.copy {
+    background: #16a34a;
+}
+
+.copy:hover {
+    background: #15803d;
+}
+
+.status {
+    margin-top: 15px;
+    text-align: center;
+    color: #fbbf24;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logo">
+        LayMax Xác Thực
+    </div>
+
+    <div class="subtitle">
+        Vượt liên kết để nhận mã xác thực
+    </div>
+
+    <div class="card">
+
+        <h2>🔐 Nhận mã</h2>
+
+        <p>
+            Bấm nút bên dưới để mở liên kết.
+            Sau khi hoàn thành, quay lại đây để nhận mã.
+        </p>
+
+        <button class="btn" id="openBtn" onclick="openLink()">
+            🔗 MỞ LIÊN KẾT
+        </button>
+
+        <button class="btn" id="doneBtn" onclick="getCode()" disabled>
+            ✅ ĐÃ HOÀN THÀNH
+        </button>
+
+        <div class="status" id="status">
+            Chưa hoàn thành liên kết
+        </div>
+
+        <div id="result">
+
+            <div>🎉 Mã của bạn:</div>
+
+            <div class="code" id="code">
+                --------
+            </div>
+
+            <button class="btn copy" onclick="copyCode()">
+                📋 SAO CHÉP MÃ
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const LINK_VUOT = "https://example.com";
+
+let daMoLink = false;
+
+/* Mở link */
+function openLink() {
+
+    daMoLink = true;
+
+    document.getElementById("doneBtn").disabled = false;
+
+    document.getElementById("status").innerText =
+        "Đã mở liên kết. Hãy hoàn thành rồi quay lại.";
+
+    window.open(LINK_VUOT, "_blank");
+}
+
+
+/* Tạo mã ngẫu nhiên */
+function randomCode(length = 8) {
+
+    const chars =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let code = "";
+
+    const array = new Uint32Array(length);
+
+    crypto.getRandomValues(array);
+
+    for (let i = 0; i < length; i++) {
+
+        code += chars[array[i] % chars.length];
+
+    }
+
+    return code;
+
+}
+
+
+/* Kiểm tra mã đã từng tạo trên thiết bị chưa */
+function codeDaTonTai(code) {
+
+    let danhSach =
+        JSON.parse(localStorage.getItem("danhSachCode") || "[]");
+
+    return danhSach.includes(code);
+}
+
+
+/* Lưu mã */
+function luuCode(code) {
+
+    let danhSach =
+        JSON.parse(localStorage.getItem("danhSachCode") || "[]");
+
+    danhSach.push(code);
+
+    localStorage.setItem(
+        "danhSachCode",
+        JSON.stringify(danhSach)
+    );
+}
+
+
+/* Nhận code */
+function getCode() {
+
+    if (!daMoLink) {
+
+        alert("Hãy mở liên kết trước!");
+
+        return;
+    }
+
+    let code;
+
+    do {
+
+        code = randomCode(8);
+
+    } while (codeDaTonTai(code));
+
+    luuCode(code);
+
+    document.getElementById("code").innerText = code;
+
+    document.getElementById("result").style.display = "block";
+
+    document.getElementById("status").innerText =
+        "Đã tạo mã thành công.";
+
+    document.getElementById("doneBtn").disabled = true;
+
+}
+
+
+/* Sao chép */
+function copyCode() {
+
+    const code =
+        document.getElementById("code").innerText;
+
+    navigator.clipboard.writeText(code);
+
+    alert("Đã sao chép mã: " + code);
+
+}
+
+</script>
+
+</body>
+              </html>
